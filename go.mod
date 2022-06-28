@@ -1,4 +1,4 @@
-module github.com/ultram4rine/go-ssh1
+module github.com/coderjw77/go-ssh1
 
 go 1.17
 
