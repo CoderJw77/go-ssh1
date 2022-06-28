@@ -481,3 +481,9 @@ func (w Waitmsg) String() string {
 	}
 	return str
 }
+
+// SendRequest sends an out-of-band channel request on the SSH channel
+// underlying the session.
+func (s *Session) SendRequest(name string, wantReply bool, payload []byte) (bool, error) {
+	return s.ch.SendRequest(name, wantReply, payload)
+}

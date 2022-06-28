@@ -44,6 +44,8 @@ type Channel interface {
 	// safely be read and written from a different goroutine than
 	// Read and Write respectively.
 	Stderr() io.ReadWriter
+
+	SendRequest(name string, wantReply bool, payload []byte) (bool, error)
 }
 
 // RejectionReason is an enumeration used when rejecting channel creation
@@ -264,3 +266,40 @@ func (ch *channel) ChannelType() string {
 func (ch *channel) ExtraData() []byte {
 	return ch.extraData
 }
+
+func (ch *channel) SendRequest(name string, wantReply bool, payload []byte) (bool, error) {
+	if wantReply {
+		ch.sentRequestMu.Lock()
+		defer ch.sentRequestMu.Unlock()
+	}
+
+	msg := channelRequestMsg{
+		PeersID:             ch.remoteId,
+		Request:             name,
+		WantReply:           wantReply,
+		RequestSpecificData: payload,
+	}
+
+	if err := ch.sendMessage(msg); err != nil {
+		return false, err
+	}
+
+	if wantReply {
+		m, ok := <-ch.msg
+		if !ok {
+			return false, io.EOF
+		}
+		switch m.(type) {
+		case *channelRequestFailureMsg:
+			return false, nil
+		case *channelRequestSuccessMsg:
+			return true, nil
+		default:
+			return false, fmt.Errorf("ssh: unexpected response to channel request: %#v", m)
+		}
+	}
+
+	return false, nil
+}
+
+

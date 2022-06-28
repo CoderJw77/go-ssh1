@@ -248,6 +248,22 @@ type haveKerberosTGTCmsg struct {
 	Credentials string `ssh1type:"44"`
 }
 
+type channelRequestMsg struct {
+	PeersID             uint32 `sshtype:"98"`
+	Request             string
+	WantReply           bool
+	RequestSpecificData []byte `ssh:"rest"`
+}
+
+type channelRequestSuccessMsg struct {
+	PeersID uint32 `sshtype:"99"`
+}
+
+type channelRequestFailureMsg struct {
+	PeersID uint32 `sshtype:"100"`
+}
+
+
 // typeTags returns the possible type bytes for the given reflect.Type, which
 // should be a struct. The possible values are separated by a '|' character.
 func typeTags(structType reflect.Type) (tags []byte) {
